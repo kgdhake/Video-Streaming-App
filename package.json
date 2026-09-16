@@ -6,8 +6,18 @@
   "scripts": {
     "dev:backend": "npm run dev --prefix Backend",
     "dev:frontend": "npm run dev --prefix Frontend",
-    "build": "npm install --prefix Backend && npm install --prefix Frontend && npm run build --prefix Frontend",
+    "build": "npm install --prefix Frontend && npm run build --prefix Frontend",
     "start": "npm run start --prefix Backend"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "stream-chat": "^8.60.0"
   },
   "keywords": [],
   "author": "",
