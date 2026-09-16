@@ -26,7 +26,7 @@ export async function signup(req, res) {
     }
 
     const idx = Math.floor(Math.random() * 100) + 1; // generate a num between 1-100
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
+    const randomAvatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${idx}`;
 
     const newUser = await User.create({
       email,
@@ -50,11 +50,13 @@ export async function signup(req, res) {
       expiresIn: "7d",
     });
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true, // prevent XSS attacks,
-      sameSite: "strict", // prevent CSRF attacks
-      secure: process.env.NODE_ENV === "production",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
     });
 
     res.status(201).json({ success: true, user: newUser });
@@ -82,11 +84,13 @@ export async function login(req, res) {
       expiresIn: "7d",
     });
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true, // prevent XSS attacks,
-      sameSite: "strict", // prevent CSRF attacks
-      secure: process.env.NODE_ENV === "production",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
     });
 
     res.status(200).json({ success: true, user });
@@ -97,7 +101,12 @@ export async function login(req, res) {
 }
 
 export function logout(req, res) {
-  res.clearCookie("jwt");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+  });
   res.status(200).json({ success: true, message: "Logout successful" });
 }
 
@@ -145,6 +154,48 @@ export async function onboard(req, res) {
     res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
     console.error("Onboarding error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const { fullName, bio, nativeLanguage, learningLanguage, location, profilePic } = req.body;
+
+    if (!fullName) {
+      return res.status(400).json({ message: "Full name is required" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        fullName,
+        bio,
+        nativeLanguage,
+        learningLanguage,
+        location,
+        profilePic,
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    try {
+      await upsertStreamUser({
+        id: updatedUser._id.toString(),
+        name: updatedUser.fullName,
+        image: updatedUser.profilePic || "",
+      });
+    } catch (streamError) {
+      console.log("Error updating Stream user during profile update:", streamError.message);
+    }
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error("Profile update error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

@@ -1,8 +1,11 @@
 {
   "name": "streamify",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "dev:backend": "npm run dev --prefix Backend",
+    "dev:frontend": "npm run dev --prefix Frontend",
     "build": "npm install --prefix Backend && npm install --prefix Frontend && npm run build --prefix Frontend",
     "start": "npm run start --prefix Backend"
   },

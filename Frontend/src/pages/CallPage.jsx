@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser.js";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api.js";
@@ -37,7 +37,7 @@ const CallPage = () => {
 
   useEffect(() => {
     const initCall = async () => {
-      if (!tokenData.token || !authUser || !callId) return;
+      if (!tokenData?.token || !authUser || !callId) return;
 
       try {
         console.log("Initializing Stream video client...");
@@ -98,9 +98,7 @@ const CallContent = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const navigate = useNavigate();
-
-  if (callingState === CallingState.LEFT) return navigate("/");
+  if (callingState === CallingState.LEFT) return <Navigate to="/" />;
 
   return (
     <StreamTheme>
